@@ -25,16 +25,15 @@ except ImportError:
 # indicating whether the framebuffer-to-matrix utility should be run
 # concurrently with that program/script.
 PROGRAMS = (
-    ("ipaddr.py", True),
-    ("test1.py", False),
-    ("audio.py", False))
+    ("ipaddr.py", False),
+    ("bargraph.py", False))
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
 PYTHON = "python"
 # GPIO for mode-switch (Broadcom GPIO #, NOT pin number):
 BUTTON = 25
 # Name of framebuffer-to-matrix utility:
-FB_TO_MATRIX = "pwd" # For testing, until util is ready
+FB_TO_MATRIX = "rpi-fb-matrix"
 # Command-line flags passed to above program/scripts and the
 # framebuffer-to-matrix utility:
 FLAGS = ["--led-cols=64", "--led-rows=32", "--led-gpio-mapping=adafruit-hat",
