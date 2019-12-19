@@ -10,9 +10,10 @@ reformatted to appease pylint/pylint3.
 """
 
 # Gets code to pass both pylint & pylint3:
-# pylint: disable=bad-option-value, useless-object-inheritance, superfluous-parens, no-self-use
+# pylint: disable=bad-option-value, useless-object-inheritance, superfluous-parens, no-self-use, unused-argument
 
 import sys
+import signal
 import argparse
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 from PIL import Image, ImageDraw
@@ -84,6 +85,10 @@ class SpectroBase(object):
     def run(self):
         """Placeholder. Override this in subclass."""
 
+    def signal_handler(self, signum, frame):
+        """Signal handler calls just invokes exit() which clears matrix."""
+        exit(0)
+
     def process(self):
         """Process command-line input and initiate the RGB matrix with
            those options before calling the subclass code."""
@@ -111,6 +116,9 @@ class SpectroBase(object):
             options.gpio_slowdown = self.args.led_slowdown_gpio
         if self.args.led_no_hardware_pulse:
             options.disable_hardware_pulsing = True
+
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
 
         self.matrix = RGBMatrix(options=options)
 

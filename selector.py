@@ -8,8 +8,10 @@ using the side button.
 # Gets code to pass both pylint & pylint3:
 # pylint: disable=bad-option-value, useless-object-inheritance, no-member
 
+import os
 import subprocess
 import time
+import argparse
 try:
     import RPi.GPIO as gpio
 except ImportError:
@@ -30,14 +32,11 @@ PROGRAMS = (
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
 PYTHON = "python"
-# GPIO for mode-switch (Broadcom GPIO #, NOT pin number):
-BUTTON = 25
 # Name of framebuffer-to-matrix utility:
 FB_TO_MATRIX = "rpi-fb-matrix"
 # Command-line flags passed to above program/scripts and the
 # framebuffer-to-matrix utility:
-FLAGS = ["--led-cols=64", "--led-rows=32", "--led-gpio-mapping=adafruit-hat",
-         "--led-slowdown-gpio=4"]
+FLAGS = ["--led-cols=64", "--led-rows=32", "--led-slowdown-gpio=4"]
 # Additional commands not used here, but you might find useful:
 # FLAGS = ["--led-rgb-sequence=rbg", "--led-brightness=50"]
 
@@ -48,15 +47,15 @@ class Selector(object):
     def __init__(self):
         self.mode = 0
         self.process = []
-        self.dev_file = None
-        self.dev = None
         self.timeout = 10.0  # First-program timeout (then advances modes)
         self.time_start = time.time()
-
-        # GPIO init
-        gpio.setwarnings(False)
-        gpio.setmode(gpio.BCM)
-        gpio.setup(BUTTON, gpio.IN, pull_up_down=gpio.PUD_UP)
+        self.gpio = 25
+        self.parser = argparse.ArgumentParser()
+        self.args = None
+        self.parser.add_argument(
+            "-g", "--gpio", action="store", help="GPIO # for mode selector "
+            "button (to GND). Default: " + str(self.gpio), default=self.gpio,
+            type=int)
 
     def launch(self):
         """Exit currently-running Spectro program (if any), launch the
@@ -88,20 +87,37 @@ class Selector(object):
 
     def run(self):
         """Main loop of Selector program."""
+
+        # Handle script-specific command line argument(s):
+        self.args = self.parser.parse_args()
+        if self.args.gpio is not None:
+            self.gpio = self.args.gpio
+
+        # GPIO init
+        gpio.setwarnings(False)
+        gpio.setmode(gpio.BCM)
+        gpio.setup(self.gpio, gpio.IN, pull_up_down=gpio.PUD_UP)
+
         self.launch() # Run initial Spectro process (shows IP address)
 
         while True:
-            if(gpio.input(BUTTON) == 0 or
+            if(gpio.input(self.gpio) == 0 or
                (self.timeout > 0 and
                 time.time() - self.time_start > self.timeout)):
+                time_pressed = time.time()
                 self.mode += 1                 # Advance to next mode
                 if self.mode >= len(PROGRAMS): # Wrap around to start
                     self.mode = 0
-                self.launch()                  # End current prog, start next
-                time.sleep(0.1)                # Extra button debounce
-                while gpio.input(BUTTON) == 0: # Wait for button release
-                    pass
                 self.timeout = -1  # Only do timeout case once, at startup
+                time.sleep(0.1)                # Extra button debounce
+                while gpio.input(self.gpio) == 0: # Wait for button release
+                    if time.time() - time_pressed >= 3: # Held for a few sec?
+                        for process in self.process:
+                            process.terminate()         # Terminate process(es)
+                        os.system("shutdown -h now")    # Halt system
+                        while True:                     # Wait for it
+                            pass
+                self.launch()      # End current prog, start next
             time.sleep(0.1)
 
 if __name__ == "__main__":
