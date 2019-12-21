@@ -29,7 +29,8 @@ except ImportError:
 PROGRAMS = (
     ("ipaddr.py", False),
     ("bargraph.py", False),
-    ("life.py", False))
+    ("life.py", False),
+    ("gifplay.py", False))
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
 PYTHON = "python"

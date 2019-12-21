@@ -16,9 +16,9 @@ BACKGROUND_COLOR = (0, 0, 0)
 HOUR_FOREGROUND = (255, 0, 0)
 MINUTE_FOREGROUND = (255, 255, 0)
 SECOND_FOREGROUND = (0, 255, 0)
-HOUR_BACKGROUND = tuple(i/8 for i in HOUR_FOREGROUND)
-MINUTE_BACKGROUND = tuple(i/8 for i in MINUTE_FOREGROUND)
-SECOND_BACKGROUND = tuple(i/8 for i in SECOND_FOREGROUND)
+HOUR_BACKGROUND = tuple(i//8 for i in HOUR_FOREGROUND)
+MINUTE_BACKGROUND = tuple(i//8 for i in MINUTE_FOREGROUND)
+SECOND_BACKGROUND = tuple(i//8 for i in SECOND_FOREGROUND)
 
 class BargraphClock(SpectroBase):
     """Bargraph clock for Spectro."""
@@ -51,16 +51,16 @@ class BargraphClock(SpectroBase):
             localtime = time.localtime(time.time())
             if TWELVE_HOUR == True:
                 hour = localtime.tm_hour % 12
-                width = 44 * (hour * 60 + localtime.tm_min) / 719
+                width = 44 * (hour * 60 + localtime.tm_min) // 719
                 if hour == 0:
                     hour = 12
             else:
                 hour = localtime.tm_hour
-                width = 44 * (hour * 60 + localtime.tm_min) / 1439
+                width = 44 * (hour * 60 + localtime.tm_min) // 1439
 
-            self.draw_digit(hour / 10, 2, 2)
+            self.draw_digit(hour // 10, 2, 2)
             self.draw_digit(hour % 10, 10, 2)
-            self.draw_digit(localtime.tm_min / 10, 2, 14)
+            self.draw_digit(localtime.tm_min // 10, 2, 14)
             self.draw_digit(localtime.tm_min % 10, 10, 14)
 
             if width > 0:
@@ -68,7 +68,7 @@ class BargraphClock(SpectroBase):
             if width < 44:
                 draw.rectangle((18 + width, 2, 61, 11), fill=HOUR_BACKGROUND)
 
-            width = 44 * localtime.tm_min / 59
+            width = 44 * localtime.tm_min // 59
             if width > 0:
                 draw.rectangle((18, 14, 17 + width, 23), fill=MINUTE_FOREGROUND)
             if width < 44:

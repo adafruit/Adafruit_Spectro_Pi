@@ -34,7 +34,7 @@ class Life(SpectroBase):
         # 'now' grid initially copies size/state from 'prior'...
         self.grid_now = deepcopy(self.grid_prior)
         # ...then set ~25% of pixels randomly (some may overlap, is OK):
-        for count in range(self.matrix.width * self.matrix.height / 4):
+        for count in range(self.matrix.width * self.matrix.height // 4):
             self.grid_now[randrange(self.matrix.height)][
                 randrange(self.matrix.width)] = 1
         self.repetitions = 0  # Reset repetition counter
