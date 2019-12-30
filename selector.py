@@ -26,15 +26,23 @@ except ImportError:
 # interpreter, else standalone program) and a True/False argument
 # indicating whether the framebuffer-to-matrix utility should be run
 # concurrently with that program/script.
+# NOTE: rpi-fb-matrix is not currently working with latest Raspbian,
+# nor is it used by any of the scripts here yet. This is a "maybe for
+# the future" capability -- say if we want it playing video or mirroring
+# the framebuffer from raspivid or similar.
 PROGRAMS = (
-    ("ipaddr.py", False),
+    ("net_stats.py", False),
+    ("cpu_stats.py", False),
     ("bargraph.py", False),
     ("life.py", False),
     ("gifplay.py", False))
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
-PYTHON = "python"
-# Name of framebuffer-to-matrix utility:
+PYTHON = "python2"
+# For some reason everything's looking super chunky with python3,
+# like maybe the matrix options aren't baked in or parsed correctly?
+# Forcing python2 for now, but want this all python3 eventually!
+# Name of framebuffer-to-matrix utility (see note above though):
 FB_TO_MATRIX = "rpi-fb-matrix"
 # Command-line flags passed to above program/scripts and the
 # framebuffer-to-matrix utility:
@@ -59,33 +67,38 @@ class Selector(object):
             "button (to GND). Default: " + str(self.gpio), default=self.gpio,
             type=int)
 
-    def launch(self):
-        """Exit currently-running Spectro program (if any), launch the
-           next one."""
-        # Terminate existing process (if any) and wait for it to finish...
-        for process in self.process:
-            process.terminate()
-            process.wait()
-            # process.wait() seems to be a little flaky about this,
-            # hence the extra while and sleep that follow...
-            while process.returncode is None:
-                pass
-        time.sleep(0.5)
-        self.process = []
-
-        # Launch new process (from PROGRAMS list, based on self.mode)
-        # Launch framebuffer-to-matrix util concurrently, if needed:
-        if PROGRAMS[self.mode][1] is True:
-            self.process.append(
-                subprocess.Popen([FB_TO_MATRIX] + FLAGS))
-        # Launch Python script or standalone program, passing FLAGS:
-        if PROGRAMS[self.mode][0].endswith(".py"):
-            self.process.append(
-                subprocess.Popen([PYTHON, PROGRAMS[self.mode][0]] + FLAGS))
-        else:
-            self.process.append(
-                subprocess.Popen([PROGRAMS[self.mode][0]] + FLAGS))
-
+    def run_one(self):
+        """Monitor last-launched subprocess until either it exits,
+           the mode-change button is pressed or the subprocess timeout
+           has elapsed. Also check for extended button hold and halt
+           system if necessary."""
+        while True:
+            self.process[0].poll() # Sets returncode if process exited
+            if(self.process[0].returncode or  # Signal or script error OR
+               gpio.input(self.gpio) == 0 or  # Button press OR
+               (self.timeout > 0 and          # Timeout
+                time.time() - self.time_start > self.timeout)):
+                time_pressed = time.time()
+                # Try killing process(es), assuming it hasn't choked
+                # on its own due to a signal or Python script error.
+                for process in self.process:
+                    try:
+                        process.terminate()
+                        process.wait()
+                        # process.wait() seems a little flaky about
+                        # this, hence the extra while and sleep:
+                        while process.returncode is None:
+                            time.sleep(0.25)
+                    except OSError:
+                        pass  # Process already exited (signal or error)
+                time.sleep(0.1) # Extra button debounce a little
+                while gpio.input(self.gpio) == 0: # Wait for button release
+                    if time.time() - time_pressed >= 3: # Held a few sec?
+                        os.system("shutdown -h now")    # Halt system
+                        while True:                     # Wait for it
+                            pass
+                break
+            time.sleep(0.1)
 
     def run(self):
         """Main loop of Selector program."""
@@ -100,27 +113,28 @@ class Selector(object):
         gpio.setmode(gpio.BCM)
         gpio.setup(self.gpio, gpio.IN, pull_up_down=gpio.PUD_UP)
 
-        self.launch() # Run initial Spectro process (shows IP address)
+        while True:  # Cycle between programs indefinitely
 
-        while True:
-            if(gpio.input(self.gpio) == 0 or
-               (self.timeout > 0 and
-                time.time() - self.time_start > self.timeout)):
-                time_pressed = time.time()
-                self.mode += 1                 # Advance to next mode
-                if self.mode >= len(PROGRAMS): # Wrap around to start
-                    self.mode = 0
-                self.timeout = -1  # Only do timeout case once, at startup
-                time.sleep(0.1)                # Extra button debounce
-                while gpio.input(self.gpio) == 0: # Wait for button release
-                    if time.time() - time_pressed >= 3: # Held for a few sec?
-                        for process in self.process:
-                            process.terminate()         # Terminate process(es)
-                        os.system("shutdown -h now")    # Halt system
-                        while True:                     # Wait for it
-                            pass
-                self.launch()      # End current prog, start next
-            time.sleep(0.1)
+            # Launch new process (from PROGRAMS list, based on self.mode).
+            # Run as Python script or standalone program, passing FLAGS:
+            if PROGRAMS[self.mode][0].endswith(".py"):
+                self.process.append(
+                    subprocess.Popen([PYTHON, PROGRAMS[self.mode][0]] + FLAGS))
+            else:
+                self.process.append(
+                    subprocess.Popen([PROGRAMS[self.mode][0]] + FLAGS))
+            # Optionally launch framebuffer-to-matrix util concurrently
+            if PROGRAMS[self.mode][1] is True:
+                self.process.append(
+                    subprocess.Popen([FB_TO_MATRIX] + FLAGS))
+
+            self.run_one()  # Until button press, timeout, etc.
+
+            self.mode += 1                 # Advance to next mode
+            if self.mode >= len(PROGRAMS): # Wrap around to start
+                self.mode = 0
+            self.timeout = -1  # Only do timeout case once, at startup
+            self.process = []
 
 if __name__ == "__main__":
     SELECTOR = Selector()
