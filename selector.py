@@ -31,8 +31,8 @@ except ImportError:
 # the future" capability -- say if we want it playing video or mirroring
 # the framebuffer from raspivid or similar.
 PROGRAMS = (
-    ("net_stats.py", False),
-    ("cpu_stats.py", False),
+    ("ip_address.py", False),
+    ("cpu_load.py", False),
     ("bargraph.py", False),
     ("life.py", False),
     ("gifplay.py", False))
@@ -57,7 +57,7 @@ class Selector(object):
     def __init__(self):
         self.mode = 0
         self.process = []
-        self.timeout = 10.0  # First-program timeout (then advances modes)
+        self.timeout = 15.0  # First-program timeout (then advances modes)
         self.time_start = time.time()
         self.gpio = 25
         self.parser = argparse.ArgumentParser()
