@@ -38,10 +38,7 @@ PROGRAMS = (
     ("gifplay.py", False))
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
-PYTHON = "python2"
-# For some reason everything's looking super chunky with python3,
-# like maybe the matrix options aren't baked in or parsed correctly?
-# Forcing python2 for now, but want this all python3 eventually!
+PYTHON = "python"
 # Name of framebuffer-to-matrix utility (see note above though):
 FB_TO_MATRIX = "rpi-fb-matrix"
 # Command-line flags passed to above program/scripts and the
