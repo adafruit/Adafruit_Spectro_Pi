@@ -26,21 +26,18 @@ except ImportError:
 # interpreter, else standalone program) and a True/False argument
 # indicating whether the framebuffer-to-matrix utility should be run
 # concurrently with that program/script.
-# NOTE: rpi-fb-matrix is not currently working with latest Raspbian,
-# nor is it used by any of the scripts here yet. This is a "maybe for
-# the future" capability -- say if we want it playing video or mirroring
-# the framebuffer from raspivid or similar.
 PROGRAMS = (
     ("ip_address.py", False),
     ("cpu_load.py", False),
     ("bargraph.py", False),
     ("life.py", False),
-    ("gifplay.py", False))
+    ("gifplay.py", False),
+    ("idle.py", True)) # Nonsense idle script to text fb2matrix.py
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
 PYTHON = "python"
-# Name of framebuffer-to-matrix utility (see note above though):
-FB_TO_MATRIX = "rpi-fb-matrix"
+# Name of framebuffer-to-matrix script:
+FB_TO_MATRIX = "fb2matrix.py"
 # Command-line flags passed to above program/scripts and the
 # framebuffer-to-matrix utility:
 FLAGS = ["--led-cols=64", "--led-rows=32", "--led-slowdown-gpio=4"]
@@ -123,7 +120,7 @@ class Selector(object):
             # Optionally launch framebuffer-to-matrix util concurrently
             if PROGRAMS[self.mode][1] is True:
                 self.process.append(
-                    subprocess.Popen([FB_TO_MATRIX] + FLAGS))
+                    subprocess.Popen([PYTHON, FB_TO_MATRIX] + FLAGS))
 
             self.run_one()  # Until button press, timeout, etc.
 
