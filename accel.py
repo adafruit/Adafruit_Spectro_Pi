@@ -10,7 +10,8 @@ sudo pip3 install adafruit-circuitpython-lis3dh
 sudo pip3 install adafruit-circuitpython-busdevice
 """
 
-import math
+# pylint: disable=import-error
+
 import board
 import busio
 import adafruit_lis3dh
@@ -25,7 +26,7 @@ class AccelSand(SpectroBase):
 
         self.parser.add_argument(
             "-e", "--elasticity", help="Elasticity (bounce) 0.0 to 1.0",
-            default=0.5)
+            default=0.1)
         self.parser.add_argument(
             "-g", "--grains", help="Number of grains")
 
@@ -44,8 +45,9 @@ class AccelSand(SpectroBase):
             elasticity = 0.1
 
         i2c = busio.I2C(board.SCL, board.SDA)
-        accel = adafruit_lis3dh.LIS3DH_I2C(i2c, address=0x18)
-        accel.range = adafruit_lis3dh.RANGE_4_G
+        accelerometer = adafruit_lis3dh.LIS3DH_I2C(i2c, address=0x18)
+        accelerometer.range = adafruit_lis3dh.RANGE_4_G
+        acceleration = (0.0, 9.8, 0.0)
 
         # Create offscreen buffer for graphics
         double_buffer = self.matrix.CreateFrameCanvas()
@@ -56,13 +58,13 @@ class AccelSand(SpectroBase):
         # Initialize with random sand
         dust.randomize(num_grains)
 
-        angle = 0.0
-        scale = 0.01
         while True:
-            acceleration = accel.acceleration
-#            dust.iterate((math.cos(angle) * 0.1, math.sin(angle) * 0.1, 0.0))
-            dust.iterate((acceleration[0] * scale, acceleration[1] * -scale, acceleration[2] * scale))
-            angle += 0.01
+            try:
+                acceleration = accelerometer.acceleration
+            except OSError:
+                # Keep last value
+                pass
+            dust.iterate(acceleration)
 
             # Render sand
             double_buffer.Clear()

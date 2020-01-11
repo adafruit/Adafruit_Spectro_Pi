@@ -36,6 +36,7 @@ class PixelDust(object):
         self.width = width            # Dimensions of pixel grid
         self.height = height
         self.elasticity = -elasticity # Invert elasticity; multiply = bounce
+        self.scale = 0.005
         self.num_grains = 0           # Grain list is not populated at start
         self.grains = None
         self.bitmap = None
@@ -102,12 +103,22 @@ class PixelDust(object):
         """Run one iteration (frame) of the particle simulation.
            Pass in acceleration as a 3-tuple (X,Y,Z)."""
 
-        accelz = abs(accel[2]) / 4  # Scale down Z
+        # Scale from G to sub-pixel units, flip X axis
+        accel = (accel[0] * -self.scale, accel[1] * self.scale,
+                 accel[2] * self.scale)
+
+        # A tiny bit of random motion is applied to each grain, so that tall
+        # stacks of pixels tend to topple (else the whole stack slides across
+        # the display). This is a function of the Z axis input, so it's more
+        # pronounced the more the display is tilted (else the grains shift
+        # around too much when the display is held level).
+
+        noise = 0.025 - max(min(abs(accel[2]) / 4, 0.02), 0.005)
 
         # Apply 2D accel vector to grain velocities...
         for grain in self.grains:
-            grain.velocity[0] += accel[0] + random.uniform(-accelz, accelz)
-            grain.velocity[1] += accel[1] + random.uniform(-accelz, accelz)
+            grain.velocity[0] += accel[0] + random.uniform(-noise, noise)
+            grain.velocity[1] += accel[1] + random.uniform(-noise, noise)
             # Terminal velocity (in any direction) is 1.0 units -- 1 pixel --
             # which keeps moving grains from passing through each other and
             # other such mayhem. Though it takes some extra math, velocity is

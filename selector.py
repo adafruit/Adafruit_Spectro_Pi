@@ -32,10 +32,11 @@ PROGRAMS = (
     ("bargraph.py", False),
     ("life.py", False),
     ("gifplay.py", False),
-    ("idle.py", True)) # Nonsense idle script to text fb2matrix.py
+    ("accel.py", False),
+    ("idle.py", True)) # Nonsense idle script to test fb2matrix.py
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
-PYTHON = "python"
+PYTHON = "python3"
 # Name of framebuffer-to-matrix script:
 FB_TO_MATRIX = "fb2matrix.py"
 # Command-line flags passed to above program/scripts and the
