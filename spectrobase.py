@@ -117,6 +117,10 @@ class SpectroBase(object):
         if self.args.led_no_hardware_pulse:
             options.disable_hardware_pulsing = True
 
+        # Don't drop root status; lets us maintain I2C access, etc.
+        # For some reason this isn't working from command line.
+        options.drop_privileges = False
+
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
 
