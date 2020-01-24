@@ -59,6 +59,7 @@ class Predict(object):
             for prediction in predictions:  # Build new prediction list
                 new_list.append(
                     int(prediction.getAttribute('seconds')))
+            new_list.sort()
             self.predictions = new_list # Replace current list
             time.sleep(Predict.interval)
 
@@ -67,7 +68,6 @@ class Predict(object):
         """Open URL, send request, read & parse XML response."""
         xml = None
         try:
-#            connection = urllib.urlopen(
             connection = request.urlopen(
                 'http://webservices.nextbus.com'  +
                 '/service/publicXMLFeed?command=' + cmd)
