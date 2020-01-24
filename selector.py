@@ -34,6 +34,7 @@ PROGRAMS = (
     ("gifplay.py", False),
     ("audio.py", False),
     ("accel.py", False),
+    ("nextbus_matrix.py", False),
     ("idle.py", True)) # Nonsense idle script to test fb2matrix.py
 # Python version to use with any .py scripts in above list, in case
 # version 2 or 3 needs to be forced:
