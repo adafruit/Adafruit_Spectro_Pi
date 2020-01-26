@@ -129,7 +129,7 @@ class AudioSpectrum(SpectroBase):
             # Read bytes from PyAudio stream, convert to int16,
             # process via NumPy's FFT function...
             data_8 = stream.read(CHUNK * 2, exception_on_overflow=False)
-            data_16 = np.fromstring(data_8, np.int16)
+            data_16 = np.frombuffer(data_8, np.int16)
             fft_out = np.fft.fft(data_16, norm="ortho")
             # fft_out will have CHUNK * 2 elements, mirrored at center
 

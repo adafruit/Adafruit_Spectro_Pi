@@ -30,6 +30,7 @@ PROGRAMS = (
     ("ip_address.py", False),
     ("cpu_load.py", False),
     ("bargraph.py", False),
+    ("arcade_clock.py", False),
     ("life.py", False),
     ("gifplay.py", False),
     ("audio.py", False),
