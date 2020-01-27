@@ -144,9 +144,10 @@ class Sprite(object):
 
     def adjusted_brightness(self):
         """Return a Sprite's color with its current brightness applied."""
-        return (int(self.color[0] * self.brightness),
-                int(self.color[1] * self.brightness),
-                int(self.color[2] * self.brightness))
+        brightness = self.brightness ** 0.8
+        return (int(self.color[0] * brightness),
+                int(self.color[1] * brightness),
+                int(self.color[2] * brightness))
 
 class ArcadeClock(SpectroBase):
     """Arcade clock for Spectro."""
