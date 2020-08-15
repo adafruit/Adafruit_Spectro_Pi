@@ -140,8 +140,8 @@ class SpectroBase(object):
            of the original with 2x2 averaging. Being all Python, it's not as
            fast as PIL, so not the best for quick animation. This is
            specifically for PIL images, NOT an RGBMatrix canvas."""
-        width = image_in.size[0] / 2
-        height = image_in.size[1] / 2
+        width = image_in.size[0] // 2
+        height = image_in.size[1] // 2
         image_out = Image.new('RGB', (width, height))
         draw = ImageDraw.Draw(image_out)
         for row in range(height):
