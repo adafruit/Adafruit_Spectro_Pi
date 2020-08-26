@@ -65,11 +65,12 @@ class GIFplayer(SpectroBase):
             for frame in ImageSequence.Iterator(image):
                 # Save frame duration, gets lost in the convert/resize
                 next_duration = frame.info.get('duration', 100) / 1000.0
+                # Frame must be RGB mode for SetImage()
+                frame = frame.convert('RGB')
                 if resize:
-                    # Frame must be converted to RGB and resized each time,
-                    # can't just do that operation once on the input image,
-                    # as the RGB conversion makes it lose its "GIF-ness."
-                    frame = frame.convert('RGB')
+                    # Frame must be resized each time, can't just do
+                    # that operation once on the input image, as the
+                    # RGB conversion makes it lose its "GIF-ness."
                     frame = frame.resize(scaled_size, resample=FILTER)
                 if back_image:
                     back_image.paste(frame, position)

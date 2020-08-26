@@ -4,8 +4,8 @@
 Framebuffer-to-matrix mirror program for Adafruit Spectro.
 Based on notro's framebuffer insights.
 https://github.com/notro/fbtft_test
-PRO TIP: for best performance, set up framebuffer for
-a small size (e.g. 320x240) in /boot/config.txt:
+PRO TIP: for best performance (and to reduce flicker), set up
+framebuffer for a small size (e.g. 320x240) in /boot/config.txt:
 
 hdmi_force_hotplug=1
 hdmi_group=2

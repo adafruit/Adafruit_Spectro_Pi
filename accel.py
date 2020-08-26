@@ -61,6 +61,10 @@ class AccelSand(SpectroBase):
         while True:
             try:
                 acceleration = accelerometer.acceleration
+                # If using a non-default orientation for the accelerometer,
+                # you can swap or invert axes as needed here:
+                # acceleration = (-acceleration[2], acceleration[1],
+                #                acceleration[0])
             except OSError:
                 # Keep last value
                 pass

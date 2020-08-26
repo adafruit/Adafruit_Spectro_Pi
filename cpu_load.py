@@ -48,8 +48,12 @@ class CPULoad(SpectroBase):
             # Poll CPU load and temperature
             cpu_load = psutil.cpu_percent(percpu=False)
             temps = psutil.sensors_temperatures(fahrenheit=IMPERIAL)
-            thermal = temps.get("cpu-thermal")
-            temperature = thermal[0].current
+            try:
+                thermal = temps.get("cpu_thermal") # New hotness
+                temperature = thermal[0].current
+            except TypeError:
+                thermal = temps.get("cpu-thermal") # Oldschool
+                temperature = thermal[0].current
 
             # Format load and temperature
             load_string = load_format.format(cpu_load)
